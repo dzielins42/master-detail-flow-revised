@@ -21,7 +21,7 @@ import pl.dzielins42.masterdetailflowrevised.dummy.DummyContent;
  * item details side-by-side using two vertical panes.
  */
 public class ItemListActivity extends AppCompatActivity implements FragmentManager
-        .OnBackStackChangedListener {
+        .OnBackStackChangedListener, View.OnClickListener {
 
     private static final String ACTIVE_ITEM_ID = "active_item_id";
     private static final String TAG = ItemListActivity.class.getSimpleName();
@@ -49,13 +49,7 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-            });
+            fab.setOnClickListener(this);
         }
 
         if (findViewById(R.id.container_b) != null) {
@@ -168,6 +162,30 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
         if (!stackedFragments) {
             setToolbarText(getTitle());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onClick(View v) {
+        if (v == null) {
+            return;
+        }
+
+        switch (v.getId()) {
+            case R.id.fab:
+                onFabClick(v);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void onFabClick(View v) {
+        Snackbar.make(v, "Replace with your own action", Snackbar.LENGTH_LONG).setAction
+                ("Action", null).show();
     }
 
 }

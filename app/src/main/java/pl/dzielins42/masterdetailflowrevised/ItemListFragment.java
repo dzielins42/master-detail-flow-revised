@@ -1,5 +1,6 @@
 package pl.dzielins42.masterdetailflowrevised;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -9,11 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import pl.dzielins42.masterdetailflowrevised.dummy.DummyContent;
-
 import java.util.List;
 
-import pl.dzielins42.masterdetailflowrevised.R;
+import pl.dzielins42.masterdetailflowrevised.dummy.DummyContent;
 
 public class ItemListFragment extends Fragment {
 
@@ -60,22 +59,10 @@ public class ItemListFragment extends Fragment {
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((ItemListActivity) getActivity()).onItemClick(holder.mItem);
-                    /*if (mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-                        ItemDetailFragment fragment = new ItemDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.item_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, ItemDetailActivity.class);
-                        intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-
-                        context.startActivity(intent);
-                    }*/
+                    Activity activity = getActivity();
+                    if (activity != null && activity instanceof ItemListActivity) {
+                        ((ItemListActivity) getActivity()).onItemClick(holder.mItem);
+                    }
                 }
             });
         }
