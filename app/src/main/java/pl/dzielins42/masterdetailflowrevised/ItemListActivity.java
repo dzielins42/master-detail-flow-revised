@@ -35,6 +35,7 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
     private String mActiveItemId = null;
 
     private Toolbar mToolbar;
+    private FloatingActionButton mFab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +48,9 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
 
         getSupportFragmentManager().addOnBackStackChangedListener(this);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        if (fab != null) {
-            fab.setOnClickListener(this);
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        if (mFab != null) {
+            mFab.setOnClickListener(this);
         }
 
         if (findViewById(R.id.container_b) != null) {
@@ -70,6 +71,9 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
         if (savedActiveItem != null) {
             mActiveItemId = savedActiveItem.id;
             showItemDetail(savedActiveItem);
+            if (mFab != null) {
+                mFab.setVisibility(mTwoPane ? View.VISIBLE : View.GONE);
+            }
         }
     }
 
@@ -161,6 +165,9 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
         }
         if (!stackedFragments) {
             setToolbarText(getTitle());
+        }
+        if (mFab != null) {
+            mFab.setVisibility(stackedFragments && !mTwoPane ? View.GONE : View.VISIBLE);
         }
     }
 
