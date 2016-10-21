@@ -63,8 +63,8 @@ public class ItemDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         Activity activity = getActivity();
-        if (activity != null && activity instanceof ItemListActivity) {
-            ((ItemListActivity) activity).setToolbarText(mItem.content);
+        if (activity != null && activity instanceof AbsMasterDetailActivity) {
+            ((AbsMasterDetailActivity) activity).setActionBarTitle(mItem.content);
         }
     }
 

@@ -60,8 +60,8 @@ public class ItemListFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     Activity activity = getActivity();
-                    if (activity != null && activity instanceof ItemListActivity) {
-                        ((ItemListActivity) getActivity()).onItemClick(holder.mItem);
+                    if (activity != null && activity instanceof AbsMasterDetailActivity) {
+                        ((AbsMasterDetailActivity) getActivity()).onItemSelected(holder.mItem.id);
                     }
                 }
             });

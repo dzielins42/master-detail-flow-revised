@@ -3,14 +3,9 @@ package pl.dzielins42.masterdetailflowrevised;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
-
-import pl.dzielins42.masterdetailflowrevised.dummy.DummyContent;
 
 /**
  * An activity representing a list of Items. This activity
@@ -20,19 +15,9 @@ import pl.dzielins42.masterdetailflowrevised.dummy.DummyContent;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity implements FragmentManager
-        .OnBackStackChangedListener, View.OnClickListener {
+public class ItemListActivity extends AbsMasterDetailActivity implements View.OnClickListener {
 
-    private static final String ACTIVE_ITEM_ID = "active_item_id";
     private static final String TAG = ItemListActivity.class.getSimpleName();
-
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
-    private boolean mTwoPane;
-
-    private String mActiveItemId = null;
 
     private Toolbar mToolbar;
     private FloatingActionButton mFab;
@@ -44,130 +29,52 @@ public class ItemListActivity extends AppCompatActivity implements FragmentManag
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
-        setToolbarText(getTitle());
-
-        getSupportFragmentManager().addOnBackStackChangedListener(this);
+        if (mToolbar != null) {
+            mToolbar.setTitle(getTitle());
+        }
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         if (mFab != null) {
             mFab.setOnClickListener(this);
         }
-
-        if (findViewById(R.id.container_b) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            mTwoPane = true;
-        }
-
-        getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-        ItemListFragment listFragment = new ItemListFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.container_a, listFragment)
-                .commit();
-
-        DummyContent.DummyItem savedActiveItem = getSavedActiveItem(savedInstanceState);
-        if (savedActiveItem != null) {
-            mActiveItemId = savedActiveItem.id;
-            showItemDetail(savedActiveItem);
-            if (mFab != null) {
-                mFab.setVisibility(mTwoPane ? View.VISIBLE : View.GONE);
-            }
-        }
     }
 
-    private void showItemDetail(DummyContent.DummyItem item) {
+    @Override
+    protected Fragment getListFragment() {
+        return new ItemListFragment();
+    }
+
+    @Override
+    protected Fragment getDetailFragment(String itemId) {
         Bundle arguments = new Bundle();
-        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, item.id);
+        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, itemId);
         ItemDetailFragment detailFragment = new ItemDetailFragment();
         detailFragment.setArguments(arguments);
-        if (mTwoPane) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.container_b,
-                    detailFragment).commit();
-        } else {
-            getSupportFragmentManager().beginTransaction().replace(R.id.container_a,
-                    detailFragment).addToBackStack(null).commit();
-        }
+
+        return detailFragment;
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart() called");
+    protected Fragment getDetailFragment(long itemId) {
+        //   getDetailFragment(String) is used
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop() called");
+    protected int getMainPanelId() {
+        return R.id.container_a;
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause() called");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume() called");
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (mActiveItemId != null) {
-            outState.putString(ACTIVE_ITEM_ID, mActiveItemId);
-        }
-    }
-
-    private DummyContent.DummyItem getSavedActiveItem(Bundle savedInstanceState) {
-        if (savedInstanceState == null || !savedInstanceState.containsKey(ACTIVE_ITEM_ID)) {
-            return null;
-        } else {
-            String id = savedInstanceState.getString(ACTIVE_ITEM_ID);
-            return DummyContent.ITEM_MAP.get(id);
-        }
-    }
-
-    public void onItemClick(DummyContent.DummyItem item) {
-        mActiveItemId = item.id;
-        showItemDetail(item);
-    }
-
-    public void setToolbarText(CharSequence text) {
-        if (mToolbar != null) {
-            mToolbar.setTitle(text);
-        }
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        boolean stackedFragments = getSupportFragmentManager().getBackStackEntryCount() > 0;
-        if (stackedFragments) {
-            getSupportFragmentManager().popBackStack();
-            return true;
-        }
-
-        return super.onSupportNavigateUp();
+    protected int getDetailPanelId() {
+        return R.id.container_b;
     }
 
     @Override
     public void onBackStackChanged() {
-        boolean stackedFragments = getSupportFragmentManager().getBackStackEntryCount() > 0;
-        boolean hasParentActivity = getSupportParentActivityIntent() != null;
-        // Show the Up button in the action bar if needed
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(stackedFragments || hasParentActivity);
-        }
-        if (!stackedFragments) {
-            setToolbarText(getTitle());
-        }
+        super.onBackStackChanged();
         if (mFab != null) {
-            mFab.setVisibility(stackedFragments && !mTwoPane ? View.GONE : View.VISIBLE);
+            mFab.setVisibility((isItemSelected() && isSinglePaneMode()) ? View.GONE : View.VISIBLE);
         }
     }
 
