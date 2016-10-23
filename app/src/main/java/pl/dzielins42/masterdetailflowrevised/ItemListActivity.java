@@ -87,13 +87,8 @@ public class ItemListActivity extends AbsMasterDetailActivity implements View.On
             return;
         }
 
-        switch (v.getId()) {
-            case R.id.fab:
-                onFabClick(v);
-                break;
-
-            default:
-                break;
+        if (v.getId() == R.id.fab) {
+            onFabClick(v);
         }
     }
 
