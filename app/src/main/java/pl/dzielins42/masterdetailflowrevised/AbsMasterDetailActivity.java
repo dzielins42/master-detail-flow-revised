@@ -131,6 +131,17 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
         return super.onSupportNavigateUp();
     }
 
+    @Override
+    public void onBackPressed() {
+        boolean stackedFragments = getSupportFragmentManager().getBackStackEntryCount() > 0;
+        if (stackedFragments) {
+            mItemIdLong = null;
+            mItemIdString = null;
+        }
+
+        super.onBackPressed();
+    }
+
     protected boolean isItemSelected() {
         return mItemIdLong != null || mItemIdString != null;
     }
