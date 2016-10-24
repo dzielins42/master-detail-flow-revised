@@ -2,6 +2,7 @@
 <recipe>
     <dependency mavenUrl="com.android.support:support-v4:${buildApi}.+" />
     <dependency mavenUrl="com.android.support:recyclerview-v7:${buildApi}.+" />
+    <dependency mavenUrl="com.github.dzielins42:master-detail-flow-revised:1.0.0" />
 
     <#if hasAppBar>
       <dependency mavenUrl="com.android.support:design:${buildApi}.+"/>
@@ -22,31 +23,32 @@
       <#include "../common/recipe_no_actionbar.xml.ftl" />
     </#if>
 
-    <instantiate from="root/res/layout/activity_item_detail.xml.ftl"
-                   to="${escapeXmlAttribute(resOut)}/layout/activity_${detail_name}.xml" />
+    <instantiate from="root/res/layout/item_master_detail.xml.ftl"
+                   to="${escapeXmlAttribute(resOut)}/layout/${item_master_detail_layout}.xml" />
     <instantiate from="root/res/layout/fragment_item_list.xml.ftl"
-                   to="${escapeXmlAttribute(resOut)}/layout/${item_list_layout}.xml" />
+                   to="${escapeXmlAttribute(resOut)}/layout/fragment_${item_list_layout}.xml" />
     <#if minApiLevel lt 13>
-      <instantiate from="root/res/layout/fragment_item_list_twopane.xml.ftl"
-                     to="${escapeXmlAttribute(resOut)}/layout/${item_list_layout}_twopane.xml" />
+      <instantiate from="root/res/layout/item_master_detail_twopane.xml.ftl"
+                     to="${escapeXmlAttribute(resOut)}/layout/${item_master_detail_layout}_twopane.xml" />
     <#else>
-      <instantiate from="root/res/layout/fragment_item_list_twopane.xml.ftl"
-                     to="${escapeXmlAttribute(resOut)}/layout-w900dp/${item_list_layout}.xml" />
+      <instantiate from="root/res/layout/item_master_detail_twopane.xml.ftl"
+                     to="${escapeXmlAttribute(resOut)}/layout-w900dp/${item_master_detail_layout}.xml" />
     </#if>
     <instantiate from="root/res/layout/item_list_content.xml.ftl"
                    to="${escapeXmlAttribute(resOut)}/layout/${item_list_content_layout}.xml" />
     <instantiate from="root/res/layout/fragment_item_detail.xml.ftl"
-                   to="${escapeXmlAttribute(resOut)}/layout/${detail_name}.xml" />
+                   to="${escapeXmlAttribute(resOut)}/layout/fragment_${detail_name}.xml" />
     <#if hasAppBar>
-      <instantiate from="root/res/layout/activity_item_list_app_bar.xml.ftl"
+      <instantiate from="root/res/layout/activity_item_list.xml.ftl"
                      to="${escapeXmlAttribute(resOut)}/layout/activity_${item_list_layout}.xml" />
     </#if>
 
-    <instantiate from="root/src/app_package/ContentDetailActivity.java.ftl"
-                   to="${escapeXmlAttribute(srcOut)}/${DetailName}Activity.java" />
-    <instantiate from="root/src/app_package/ContentDetailFragment.java.ftl"
+    <instantiate from="root/src/app_package/ItemDetailFragment.java.ftl"
                    to="${escapeXmlAttribute(srcOut)}/${DetailName}Fragment.java" />
-    <instantiate from="root/src/app_package/ContentListActivity.java.ftl"
+    <instantiate from="root/src/app_package/ItemListFragment.java.ftl"
+                   to="${escapeXmlAttribute(srcOut)}/${CollectionName}Fragment.java" />
+
+    <instantiate from="root/src/app_package/ItemListActivity.java.ftl"
                    to="${escapeXmlAttribute(srcOut)}/${CollectionName}Activity.java" />
     <#include "../common/recipe_dummy_content.xml.ftl" />
 

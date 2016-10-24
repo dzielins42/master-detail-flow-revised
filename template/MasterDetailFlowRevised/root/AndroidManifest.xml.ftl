@@ -23,16 +23,6 @@
             </intent-filter>
             </#if>
         </activity>
-
-        <activity android:name="${relativePackage}.${DetailName}Activity"
-            android:label="@string/title_${detail_name}"
-            <#if hasAppBar>
-            android:theme="@style/${themeNameNoActionBar}"
-            </#if>
-            <#if buildApi gte 16>android:parentActivityName="${relativePackage}.${CollectionName}Activity"</#if>>
-            <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="${relativePackage}.${CollectionName}Activity" />
-        </activity>
     </application>
 
 </manifest>
