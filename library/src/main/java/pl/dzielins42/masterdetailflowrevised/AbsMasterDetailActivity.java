@@ -5,14 +5,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 public abstract class AbsMasterDetailActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener {
 
-    private static final String ACTIVE_ITEM_ID_STRING = "pl.dzielins42.masterdetailflowrevised" +
-            ".key.ACTIVE_ITEM_ID_STRING";
-    private static final String ACTIVE_ITEM_ID_LONG = "pl.dzielins42.masterdetailflowrevised.key"
-            + ".ACTIVE_ITEM_ID_LONG";
+    private static final String ACTIVE_ITEM_ID_STRING = "pl.dzielins42.masterdetailflowrevised.key.ACTIVE_ITEM_ID_STRING";
+    private static final String ACTIVE_ITEM_ID_LONG = "pl.dzielins42.masterdetailflowrevised.key.ACTIVE_ITEM_ID_LONG";
+    private static final String TAG_DETAIL_FRAGMENT = "pl.dzielins42.masterdetailflowrevised.tag.DETAL";
+    private static final String TAG_LIST_FRAGMENT = "pl.dzielins42.masterdetailflowrevised.tag.LIST";
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -31,6 +32,20 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
 
         mDoInit = true;
         mSavedInstanceStateForInitialization = savedInstanceState;
+    }
+
+    @Override
+    protected void onPause() {
+        getSupportFragmentManager().removeOnBackStackChangedListener(this);
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        getSupportFragmentManager().addOnBackStackChangedListener(this);
     }
 
     @Override
@@ -59,6 +74,21 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
 
     protected boolean isTwoPaneMode() {
         return mTwoPane;
+    }
+
+    protected Fragment getDetailFragment(Bundle savedInstanceState) {
+        if (savedInstanceState == null || !(savedInstanceState.containsKey(ACTIVE_ITEM_ID_LONG)
+                || savedInstanceState.containsKey(ACTIVE_ITEM_ID_STRING))) {
+            return null;
+        }
+
+        if (savedInstanceState.containsKey(ACTIVE_ITEM_ID_LONG)) {
+            return getDetailFragment(savedInstanceState.getLong(ACTIVE_ITEM_ID_LONG));
+        } else if (savedInstanceState.containsKey(ACTIVE_ITEM_ID_STRING)) {
+            return getDetailFragment(savedInstanceState.getString(ACTIVE_ITEM_ID_STRING));
+        }
+
+        return null;
     }
 
     protected boolean isSinglePaneMode() {
@@ -111,10 +141,10 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
     private void showDetailFragment(Fragment detailFragment) {
         if (isTwoPaneMode()) {
             getSupportFragmentManager().beginTransaction().replace(getDetailPanelId(),
-                    detailFragment).commit();
+                    detailFragment, TAG_DETAIL_FRAGMENT).commit();
         } else {
             getSupportFragmentManager().beginTransaction().replace(getMainPanelId(),
-                    detailFragment).addToBackStack(null).commit();
+                    detailFragment, TAG_DETAIL_FRAGMENT).addToBackStack(null).commit();
         }
     }
 
