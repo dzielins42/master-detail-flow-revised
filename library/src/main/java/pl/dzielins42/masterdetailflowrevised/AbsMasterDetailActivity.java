@@ -5,13 +5,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 public abstract class AbsMasterDetailActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener {
 
-    private static final String ACTIVE_ITEM_ID_STRING = "pl.dzielins42.masterdetailflowrevised.key.ACTIVE_ITEM_ID_STRING";
-    private static final String ACTIVE_ITEM_ID_LONG = "pl.dzielins42.masterdetailflowrevised.key.ACTIVE_ITEM_ID_LONG";
+    private static final String KEY_MODE = "pl.dzielins42.masterdetailflowrevised.key.MODE";
+    private static final String KEY_ACTIVE_ITEM_ID_STRING = "pl.dzielins42.masterdetailflowrevised.key.ACTIVE_ITEM_ID_STRING";
+    private static final String KEY_ACTIVE_ITEM_ID_LONG = "pl.dzielins42.masterdetailflowrevised.key.ACTIVE_ITEM_ID_LONG";
     private static final String TAG_DETAIL_FRAGMENT = "pl.dzielins42.masterdetailflowrevised.tag.DETAL";
     private static final String TAG_LIST_FRAGMENT = "pl.dzielins42.masterdetailflowrevised.tag.LIST";
 
@@ -24,13 +24,11 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
     private String mItemIdString;
     private Long mItemIdLong;
     private Bundle mSavedInstanceStateForInitialization;
-    private boolean mDoInit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mDoInit = true;
         mSavedInstanceStateForInitialization = savedInstanceState;
     }
 
@@ -46,49 +44,33 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
         super.onResume();
 
         getSupportFragmentManager().addOnBackStackChangedListener(this);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
         init();
     }
 
     protected void init() {
-        getSupportFragmentManager().addOnBackStackChangedListener(this);
+        //getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-        getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-        Fragment listFragment = getListFragment();
-        getSupportFragmentManager().beginTransaction().replace(getMainPanelId(), listFragment)
-                .commit();
+        Fragment listFragment;
+        // Try to use existing list Fragment if available
+        listFragment = getSupportFragmentManager().findFragmentByTag(TAG_LIST_FRAGMENT);
+        if (listFragment == null) {
+            // Fragment not available, possibly first run
+            listFragment = getListFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(getMainPanelId(), listFragment, TAG_LIST_FRAGMENT)
+                    .commit();
+        }
 
         if (mSavedInstanceStateForInitialization != null) {
             restoreDetailFragment(mSavedInstanceStateForInitialization);
         }
 
-        mDoInit = false;
         mSavedInstanceStateForInitialization = null;
     }
 
     protected boolean isTwoPaneMode() {
         return mTwoPane;
-    }
-
-    protected Fragment getDetailFragment(Bundle savedInstanceState) {
-        if (savedInstanceState == null || !(savedInstanceState.containsKey(ACTIVE_ITEM_ID_LONG)
-                || savedInstanceState.containsKey(ACTIVE_ITEM_ID_STRING))) {
-            return null;
-        }
-
-        if (savedInstanceState.containsKey(ACTIVE_ITEM_ID_LONG)) {
-            return getDetailFragment(savedInstanceState.getLong(ACTIVE_ITEM_ID_LONG));
-        } else if (savedInstanceState.containsKey(ACTIVE_ITEM_ID_STRING)) {
-            return getDetailFragment(savedInstanceState.getString(ACTIVE_ITEM_ID_STRING));
-        }
-
-        return null;
     }
 
     protected boolean isSinglePaneMode() {
@@ -106,16 +88,42 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
     protected abstract int getDetailPanelId();
 
     protected void restoreDetailFragment(Bundle savedInstanceState) {
-        if (savedInstanceState == null || !(savedInstanceState.containsKey(ACTIVE_ITEM_ID_LONG)
-                || savedInstanceState.containsKey(ACTIVE_ITEM_ID_STRING))) {
+        if (savedInstanceState == null || !(savedInstanceState.containsKey(KEY_ACTIVE_ITEM_ID_LONG)
+                || savedInstanceState.containsKey(KEY_ACTIVE_ITEM_ID_STRING))) {
             return;
         }
 
-        if (savedInstanceState.containsKey(ACTIVE_ITEM_ID_LONG)) {
-            onItemSelected(savedInstanceState.getLong(ACTIVE_ITEM_ID_LONG));
-        } else if (savedInstanceState.containsKey(ACTIVE_ITEM_ID_STRING)) {
-            onItemSelected(savedInstanceState.getString(ACTIVE_ITEM_ID_STRING));
+        // Restore ID
+        if (savedInstanceState.containsKey(KEY_ACTIVE_ITEM_ID_LONG)) {
+            mItemIdLong = savedInstanceState.getLong(KEY_ACTIVE_ITEM_ID_LONG);
         }
+        mItemIdString = savedInstanceState.getString(KEY_ACTIVE_ITEM_ID_STRING);
+
+        // If the mode (two-pane vs single-pane) did not change and detail Fragment exists,
+        // it is assumed that everything is OK
+        Fragment detailFragment = getSupportFragmentManager()
+                .findFragmentByTag(TAG_DETAIL_FRAGMENT);
+        // It is assumed that mode did not change
+        boolean savedModeIsTwoPane = savedInstanceState.getBoolean(KEY_MODE, isTwoPaneMode());
+        if (detailFragment != null && savedModeIsTwoPane == isTwoPaneMode()) {
+            return;
+        }
+
+        FragmentManager fragmentManager=getSupportFragmentManager();
+        // In this case, detail Fragment has to be moved between main panel and detail panel
+        if(isTwoPaneMode()){
+            // Was single-pane mode
+            // Detail Fragment should be above list Fragment,
+            // pop back stack to take it from the top, it will be added to detail panel
+            fragmentManager.popBackStack();
+        } else {
+            // Was two-pane mode
+            // Detail Fragment is attached to detail panel,
+            // remove it and it will be added to main panel
+            fragmentManager.beginTransaction().remove(detailFragment).commit();
+        }
+        fragmentManager.executePendingTransactions();
+        showDetailFragment(detailFragment);
     }
 
     public void onItemSelected(String itemId) {
@@ -193,10 +201,11 @@ public abstract class AbsMasterDetailActivity extends AppCompatActivity implemen
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (mItemIdLong != null) {
-            outState.putLong(ACTIVE_ITEM_ID_LONG, mItemIdLong);
+            outState.putLong(KEY_ACTIVE_ITEM_ID_LONG, mItemIdLong);
         } else if (mItemIdString != null) {
-            outState.putString(ACTIVE_ITEM_ID_STRING, mItemIdString);
+            outState.putString(KEY_ACTIVE_ITEM_ID_STRING, mItemIdString);
         }
+        outState.putBoolean(KEY_MODE, isTwoPaneMode());
     }
 
     public void setActionBarTitle(CharSequence title) {
